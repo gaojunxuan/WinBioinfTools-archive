@@ -1,0 +1,5 @@
+sequences of framents are reported when exact matches are used
+
+default output mode=0 is the mga mode 
+                    1 with sequence of exact fragments
+		    2 line format

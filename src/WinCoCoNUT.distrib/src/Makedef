@@ -1,0 +1,23 @@
+CFLAGS=-Wall -Os -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+
+LIBGNU=-L$(GNULIB) -R$(GNULIB)
+
+# Insure
+# CC=insure g++ -g
+
+# Purify
+#CC=purify g++ -g
+
+#Debug
+#CC=/usr/local/bin/g++ -g -pg
+#CC=/usr/local/bin/g++ 
+#CC=g++ -g 
+
+#Linux
+CC=g++ 
+
+COPT=$(CFLAGS)
+#COPT +=-DMACHINE_64
+#COPT += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+COPT +=-m64
+LD=$(CC) 

@@ -1,0 +1,126 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <fcntl.h>
+#include <string.h>
+#include <dirent.h>
+
+
+#include <sys/time.h>
+
+using namespace std;
+char complement(char X);
+vector <unsigned long> contig_size_list;
+vector <string> contig_desc_list;
+
+int prepare_sequences_in_file(char* file_name);
+
+int main (int argc, char* argv[]) {
+    
+    
+    
+    /* default Werte setzen */
+ 
+    
+    /* keine Argumente -> Hilfe */
+    if (argc == 1)
+    {
+	cerr << "usage: " << argv[0] << "input_multi_fasta_file\n\n";
+	cerr << "The program concatenates the seqeunces given in multi-fasta\n";
+	cerr << "file with a unique symbol between the sequences.\n";
+	exit(-1);
+    }
+   
+    //base_dir_name.append((char*)dirname(argv[0]));
+    
+    /* Kontrolle der uebergebenen Argumente */
+    char* filename=argv[1];
+
+    
+    prepare_sequences_in_file(filename);
+    contig_size_list.empty();
+    contig_desc_list.empty();
+    exit(0);
+
+}
+
+
+
+int prepare_sequences_in_file(char* file_name){
+    string zeile;
+    ifstream in_file_obj (file_name, ios::in);
+    string out_file_name=file_name;
+    int in_fasta_line_size=60;
+    
+    out_file_name=out_file_name+".ready";
+
+    ofstream out_file_obj ((char*)out_file_name.c_str(), ios::out);
+    long i=0;
+    long k=0;
+    if (!in_file_obj) {
+	cerr << "Error: Cannot open chain file!\n";
+	return(1);
+    }
+
+    getline (in_file_obj, zeile);
+    contig_desc_list.push_back(zeile.substr(1,zeile.size()-1));
+    out_file_obj << "> concatenated files \n";
+
+    while (getline (in_file_obj, zeile)) {
+	if (zeile.substr (0, 1).compare (">") == 0) {	   
+	    out_file_obj << ((char)'N');	    
+	    
+	    if(contig_size_list.size()==0){
+		contig_size_list.push_back(k);	       
+	    }
+	    else{
+		contig_size_list.push_back(k);		
+	    }
+
+	    k=0;
+	    i++;
+
+	    if(i%in_fasta_line_size==0){
+		out_file_obj << endl;
+		
+	    }
+	    contig_desc_list.push_back(zeile.substr(1,zeile.size()-1));
+	    continue;
+	}
+	for(unsigned long j=0;j<zeile.size();j++){
+	    if((zeile[j]!='\n')&&(zeile[j]!=' ')){	       	    
+		out_file_obj << zeile[j];
+		i++;
+		k++;
+		if(i%in_fasta_line_size==0){
+		    out_file_obj << endl;
+		    
+		}
+	    }
+	}
+	
+    }
+    if(contig_size_list.size()==0){
+	contig_size_list.push_back(k);
+    }
+    else
+    {
+	contig_size_list.push_back(k);
+    }
+
+    out_file_obj << endl;
+    in_file_obj.close();
+    out_file_obj.close();
+    
+    for(unsigned long j=0;j<contig_size_list.size();j++){
+	cout << j << " " << contig_size_list[j] << " "<< contig_desc_list[j] << endl;
+	//cout << j << " " << contig_size_list[j] << endl;
+    }
+/*
+    cout << "desc" <<endl;
+    for(int j=0;j<contig_desc_list.size();j++){
+	cout << j << <<contig_desc_list[j] << endl;
+    }
+*/  
+    return(0);
+}

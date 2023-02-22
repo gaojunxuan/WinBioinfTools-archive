@@ -1,0 +1,97 @@
+#MYLIB=/home/mibrahim/lib
+#INCDIR=-I /home/mibrahim/Myprojects/Gcomp
+
+
+#GNULIB=/usr/local/lib
+
+# CC=gcc
+
+#CC=/usr/local/bin/g++
+
+#CFLAGS=-Wall -O3 
+
+# Insure
+# CC=insure g++ -g
+
+# Purify
+#CC=purify g++ -g
+
+#Debug
+#CC=/usr/local/bin/g++ -g -pg
+#CC=/usr/local/bin/g++ 
+#CC=g++ -g 
+
+#Linux
+#CC=g++ -g
+
+#COPT=$(CFLAGS)
+#COPT +=-DMACHINE_64
+#COPT +=-m64
+#LD=$(CC) 
+
+include ../Makedef
+
+CFILES=Gcomp.cpp kdTree.cpp kdChainer.cpp ProcessFragmentFile.cpp ProcessOptions.cpp ContigSorting.cpp
+
+
+LIBGNU=-L$(GNULIB) -R$(GNULIB) 
+
+EXEFILE=chainer
+OBJFILES=Gcomp.o 
+
+#$(OBJFILES): $(CFILES)
+#	$(CC)  $(CFILES) 
+
+$(EXEFILE): $(CFILES)
+	$(LD) $(LIBGNU) $(CFLAGS) $(CFILES) -o $(EXEFILE) 
+
+
+	$(LD) $(CFLAGS) match2chainer.c -o match2chainer
+	$(LD) $(CFLAGS) rep2chainer.c -o rep2chainer
+	$(LD) $(CFLAGS) rep2chainer4memspe.c -o rep2chainer4memspe
+	$(LD) $(CFLAGS) multimat2chainer.cpp -o multimat2chainer
+	$(LD) $(CFLAGS) ramaco2chainer.cpp -o ramaco2chainer
+	$(LD) $(CFLAGS) gt2chainer.cpp -o gt2chainer
+
+
+64bits:
+	$(LD) $(LIBGNU) $(COPT) $(CFILES) -o $(EXEFILE)	
+
+	$(LD) $(COPT) match2chainer.c -o match2chainer
+	$(LD) $(COPT) rep2chainer.c -o rep2chainer
+	$(LD) $(COPT) rep2chainer4memspe.c -o rep2chainer4memspe
+	$(LD) $(COPT) multimat2chainer.cpp -o multimat2chainer
+	$(LD) $(COPT) ramaco2chainer.cpp -o ramaco2chainer
+	$(LD) $(CFLAGS) gt2chainer.cpp -o gt2chainer
+
+SUFFIXES: .tex .dvi .ps .c .h
+LATEX=latex
+
+%.dvi:%.tex
+	$(LATEX) $<
+
+%.ps:%.dvi
+	dvips -o $@ $<
+
+%.tex:%.c
+	@echo "make $@"
+	@c2lit.x $^ | lit2tex.x -C > $@
+
+%.tex:%.h
+	@echo "make $@"
+	@c2lit.x $^ | lit2tex.x -C > $@
+
+
+.c.cpp:
+	@echo "make $@"
+	@$(CC) -E -g3 $(CFLAGS) $< > $@
+
+clean: 
+#	rm *.x
+	rm -f chainer
+	rm -f match2chainer
+	rm -f rep2chainer
+	rm -f rep2chainer4memspe	
+	rm -f multimat2chainer
+	rm -f ramaco2chainer
+

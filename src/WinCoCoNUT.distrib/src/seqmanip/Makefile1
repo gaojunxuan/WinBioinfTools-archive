@@ -1,0 +1,29 @@
+#LD=/usr/local/bin/g++
+#GNULIB=/usr/local/lib
+#GNULIB64=/usr/local/lib/sparcv9
+# Linux
+#LD=g++ -O3 -Wall
+#GNULIB=/usr/lib
+#GNULIB64=/usr/bin/lib/sparcv9
+
+#LIBGNU=-L$(GNULIB) -R$(GNULIB)
+
+include ../Makedef
+
+OFILES=concatmultifasta.o
+CFILES=concatmultifasta.cpp
+EXEFILE=concatmultifasta
+EXEFILE2=concatmultifasta
+
+$(EXEFILE):	$(OFILES)
+	$(LD)  $(CFLAGS) $(LIBGNU) $(CFILES) -o $(EXEFILE)
+
+64bits:
+	$(LD) $(LIBGNU) $(COPT) $(CFILES) -o $(EXEFILE)	
+
+.PHONY:	clean_all clean
+clean_all:
+	rm -f $(OFILES) $(EXEFILE)
+clean:
+	rm -f $(OFILES) $(EXEFILE)
+

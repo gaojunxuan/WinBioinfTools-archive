@@ -1,0 +1,8 @@
+FRAGMENT= -p -d -v -l 12 
+
+CHAINING= -l -chainerformat -lw 3 -gc 20 -length 30
+
+
+#ALIGN= -palindrome
+
+#CHAINING= -neighbor -chainerformat  -gc 20000 -length 10  

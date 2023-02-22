@@ -1,0 +1,10 @@
+# PATHS
+
+#fragment generation  tool
+FRAGMENT=../../bin/multimat_vmatch
+
+#chaining path
+CHAINING=../../bin/chainer
+
+#align path
+ALIGN=../../bin/align

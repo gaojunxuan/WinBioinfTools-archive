@@ -1,0 +1,837 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <fcntl.h>
+#include <string.h>
+#include <dirent.h>
+
+#include "fragment.hpp"
+#include "align_chain.hpp"
+#include <sys/time.h>
+
+#include "contigs.hpp"
+
+using namespace std;
+
+//int fasta_line_size=70;
+
+int prepare_sequences_in_file(char* file_name,long in_fasta_line_size,contigs*);
+int set_fasta_file_length(long *fasta_line_size_array,vector<string> genome_list);
+void terminate_prog(ifstream* in,long number_of_genomes,long* genome_size_array,int* genome_files_handles, long* start_offset_array,align_chain* akt);
+int parse_contig_line(string fp,long* contig_offset_array,long*,long,align_chain* akt);
+int check_empty_chain_file(char* chain_filename);
+
+
+//-----------------------------------------------
+/*
+ *	Anzeige der Hilfe
+ */
+void help (string prog, string txt = "") {
+	if (txt.compare ("") != 0)
+		cout << txt << endl;
+
+	cout << "usage: " << prog << " -chain ChainFile  [options] -f Seq_Files \n";
+       
+	cout << endl;
+	cout << "-clustalw X  : X is the clustalw program including its path \n";
+	cout << "-chain       : input chain file, in chainer format \n";
+	cout << "-draft       : align draft genomes \n";
+	cout << "-relative X  : report in relative position. This requires input contig \n";
+	cout << "               chain file X in chainer format\n";
+	cout << "-f           : specify input sequences (fasta format), min. two sequences \n";
+	cout << "-gl X        : specify maximal gap length X for regions\n";
+        cout << "               to be considered alignable, default is 1000 bp \n";	
+	cout << "-o mga|lineal: choose either mga/lineal ouput format\n";	
+	cout << "-match       : show sequence data of the aligned multiMEMs  \n";
+	cout << "-n X         : produce alignment of first X seqs, ignor remaining sequences\n";
+	cout << "-dirc [p|m]  : specify the orientation of the seqeunces, an info file is must\n";
+	cout << "-info X      : specify the info file X\n";
+	cout << "-palindrome  : report coordinates w.r.t. forward strand, not reverse complement\n";
+	cout << "-ready       : use pre-formatted sequence files for draft genomes\n";
+	cout << "-h || -help  : Help\n";
+	
+	cout << endl;
+	cout << "Example:\n \t alichainer -clustalw ./clustalw -chain ChainFile -o mga -match -f Seq1 Seq2 Seq3\n";
+	cout << endl;
+	
+	exit (8);
+}
+
+
+//################################# MAIN #######################################
+
+int main (int argc, char* argv[]) {
+    string error = "ERROR - fehlerhafter Aufsruf";
+    
+    /* default Werte setzen */
+    
+    long chain_no=0;
+    long number_of_genomes=0;
+    int* genome_files_handles=NULL;
+    long *start_offset_array=NULL;
+    long *genome_size_array=NULL;
+    long *fasta_line_size_array=NULL;
+
+    long* contig_offset_array=NULL; // to report in relative coord.
+    long* contig_id_array=NULL; // to report contig ids.
+
+    int number_of_genomes_flag=1;
+    vector<string> genome_list;
+    vector<string> orig_genome_list;
+    char* chain_file=NULL;
+    char* contig_file=NULL;
+    char* clustalw_prog=NULL;
+    int clustalw_prog_flag=0;
+    int output_mode=0;
+    int fragment_output_mode=0;
+    long in_aligned_gap_threshold=1000;
+    string direction="";
+    char* info_file_name=NULL;
+    int direction_flag=0;
+    int infofile_flag=0;
+    int draft_flag=0;
+    int relative_flag=0;
+    int palindrome_flag=0;
+    int ready_flag=0;
+    
+    contigs* all_contigs_array=NULL;
+
+
+
+    /* keine Argumente -> Hilfe */
+    if (argc == 1)
+	help (argv[0]);
+
+   
+    //base_dir_name.append((char*)dirname(argv[0]));
+    
+    /* Kontrolle der uebergebenen Argumente */
+    if (argc != 1) {
+	
+	for (int i = 1; i < argc; i++) {
+
+	    /* Hilfe */
+	    if ((strcmp (argv[i], "-h") == 0) ||(strcmp (argv[i], "-help") == 0)){
+		help (argv[0]);
+	    }
+	    // number of genomes
+	    else if (strcmp (argv[i], "-n") == 0) {
+		number_of_genomes=atoi(argv[i+1]);
+		number_of_genomes_flag=0;
+		i++;
+	    }
+	    /* Eingabefile */		
+	    else if (strcmp (argv[i], "-chain") == 0) {
+		chain_file=argv[i+1];
+		if(check_empty_chain_file(chain_file)!=1){
+		    cerr << "Warning: empty chain file\n";
+		    exit(1);
+		}
+
+		i++;		
+	    }
+	    /* Eingabefile .ctg file*/		
+	    else if (strcmp (argv[i], "-draft") == 0) {		
+		draft_flag=1;				
+	    }
+	    else if (strcmp (argv[i], "-ready") == 0) {		
+		ready_flag=1;				
+	    }	    
+	    else if (strcmp (argv[i], "-relative") == 0) {
+		contig_file=argv[i+1];
+		relative_flag=1;
+		i++;		
+	    }
+	    /* Eingabe clustalw program */		
+	    else if (strcmp (argv[i], "-clustalw") == 0) {
+		clustalw_prog=argv[i+1];
+		clustalw_prog_flag=1;
+		i++;		
+	    }
+	    else if (strcmp (argv[i], "-gl") == 0) {
+		in_aligned_gap_threshold=atol(argv[i+1]);
+		i++;		
+	    }
+	    else if (strcmp (argv[i], "-f") == 0) {
+		int j=0;
+		i++;
+		while (i < argc) {
+		    if(argv[i][0] != '-'){
+			genome_list.push_back(argv[i]);
+			orig_genome_list.push_back(argv[i]);
+			//printf("Genome Name %s \n",genome_list[j].c_str());
+			j++;			
+			i++;
+		    }
+		    else{
+			i--;
+			break;
+		    }		    
+		}
+		
+	    }
+
+	    // output mode
+	    else if (strcmp (argv[i], "-o") == 0) {
+		if ((strcmp(argv[i+1],"mga")==0)){
+		    output_mode=0;
+		}
+		else if((strcmp(argv[i+1],"lineal")==0)){
+		    output_mode=1;
+		}
+		else{
+		    cerr << "Error: Non specified output mode \n";
+		    return (9);
+		}
+		i++;	
+	    }
+	    // output sequences of matches 
+	    else if (strcmp (argv[i], "-match") == 0) {		
+		fragment_output_mode=1;				
+			
+	    }
+	    // output sequences of matches 
+	    else if (strcmp (argv[i], "-dirc") == 0) {		
+		direction=argv[i+1];
+		i++;		
+		direction_flag=1;
+			
+	    }
+	    else if (strcmp (argv[i], "-info") == 0) {		
+		info_file_name=argv[i+1];
+		i++;
+		infofile_flag=1;
+			
+	    }
+	    else if(strcmp (argv[i], "-palindrome")==0){
+		palindrome_flag=1;
+	    }
+	    else{
+		cerr << "Error: no such option: " << argv[i] << "\n";
+		return (9);
+	    }
+	}
+    }
+    
+
+    if((relative_flag==1)&&(draft_flag!=1)){
+	cerr << "Error: Option -relative is depenedent on -draft \n";
+	exit(1);
+    }
+    if(clustalw_prog_flag!=1){
+	cerr << "Error: Clustalw is not specified. \n";
+	return (1);
+    }
+    if(number_of_genomes_flag==1){	
+	number_of_genomes=genome_list.size();
+    }
+
+    if(number_of_genomes_flag==0){
+	if((unsigned long)number_of_genomes>genome_list.size()){	    	
+	    number_of_genomes=genome_list.size();
+	    cerr << "Warning: Given number of seqs should be less or equal the given seqs, default is taken \n";
+	}
+    }
+
+    if(direction_flag){
+	if(infofile_flag==0){
+	    cerr << "Failure: Option dirc requires info file\n";
+	    return(1);
+	}
+    }
+    
+    if(genome_list.size()<2){
+	cerr << "Failure: Number of genomes is less than 2\n";
+	return(1);
+    }
+
+    genome_files_handles=new int[number_of_genomes];
+
+    cout << "# Number of genomes: " << number_of_genomes << "\n";
+    
+
+    /* eingelesene Zeile */
+    string zeile;
+    string ctg_zeile;
+    long cdna_counter = 0;
+
+    /* Einzulesende Datei */
+    ifstream in (chain_file, ios::in);
+    if (!in) {
+	cerr << "Error: Cannot open chain file!\n";
+	exit (1);
+    }
+
+ 
+    for(int i=0;i<number_of_genomes;i++){
+	cout << "# Seq "<< i+1 << ": " << genome_list[i].c_str()<< "\n";
+    }
+
+    cout << "# Chain file: " << chain_file << "\n";
+    cout << "# Orientation:  ";
+    for(int i=0;i<number_of_genomes;i++){
+	if(direction_flag==1){
+	    if(direction[i]=='p'){
+		cout << "+ ";
+	    }
+	    else{
+		cout << "- ";
+	    }
+	}
+	else{
+	    direction=direction+"p";
+	    cout << "+ ";
+	}
+    }
+    cout << endl;
+
+    // displaying chain boundaries
+    cout << "# Chain display options: ";
+    if(palindrome_flag)
+	cout << "palindrome";
+    else
+	cout << "w.r.t. reverse complement";
+
+    if(relative_flag)
+	cout << ", relative positions";
+    else
+	cout << ", absolute positions";
+    cout << endl;
+
+
+    // handling input fasta files
+    fasta_line_size_array=new long[number_of_genomes];
+    int res=set_fasta_file_length(fasta_line_size_array,genome_list);
+    if(res!=0){
+	exit(0);
+	delete[] fasta_line_size_array;
+    }
+    // handling conigs
+    
+    contig_offset_array=new long[number_of_genomes];
+    contig_id_array=new long[number_of_genomes];
+    all_contigs_array=new contigs[number_of_genomes];
+    for(int i=0;i<number_of_genomes;i++){
+	contig_offset_array[i]=0;
+	contig_id_array[i]=1;
+    }
+    ifstream in_ctg;
+    if(draft_flag==1){
+	if(relative_flag==1){
+	    in_ctg.open(contig_file, ios::in);	
+	    if (!in_ctg) {
+		cerr << "Error: Cannot open .ctg file!\n";
+		exit (1);
+	    }
+	    
+	}
+	for(int i=0;i<number_of_genomes;i++){
+	    if(ready_flag==0){
+		int res=prepare_sequences_in_file((char*)genome_list[i].c_str(),fasta_line_size_array[i],&all_contigs_array[i]);	    		//cout << "HIIIIIIIIIIIIIIIIIIIIII " << fasta_line_size_array[i]<< endl;
+		if(res!=0){
+		    exit(1);
+		}
+	    }
+	    genome_list[i]=genome_list[i]+".ready";	    
+	    //cout << genome_list[i] << endl;	    
+	}
+    }
+    
+       
+    
+    
+
+    for(int i=0;i<number_of_genomes;i++){	
+	genome_files_handles[i]=open64 (genome_list[i].c_str(), O_RDONLY);
+	if (genome_files_handles[i] == -1) {
+	    cerr << "Error: cannot open file: " << genome_list[i].c_str() << endl;
+	    return(4);
+	}
+    }
+    
+       /* Einzulesende Datei Ctg*/
+ 
+    
+    /* Der Name des Chromosoms gehoert nicht zur Sequenz.
+       Ermitteln des startoffsets */
+    start_offset_array=new long [number_of_genomes];
+    
+//    int offset_flag=0;
+    for(int i=0;i<number_of_genomes;i++){
+	start_offset_array[i]=0;
+	char buffer [61];
+	while(1){
+	    /* Name steht in erster Zeile (max. 60 Zeichen) */
+	    read (genome_files_handles[i], buffer, 61);
+	    int k = 0;
+	    /* NewLine suchen */
+	    while ((buffer[k] != '\n')&&(k<61)) {
+		start_offset_array[i]++;
+		k++;
+		
+	    }
+	    if(buffer[k] == '\n'){
+		start_offset_array[i]++;
+		//printf("Header size of genome %d: %d\n",i,start_offset_array[i]);
+		break;
+	    }
+	}
+	
+    }
+
+    
+//// test for retrieving reverse complement
+    if(direction_flag==1){
+
+// read info file
+	ifstream info_file (info_file_name, ios::in);
+    
+	if (!info_file) {
+	    cout << "Fehler beim Offnen des info File!\n";
+	    exit (1);
+	}
+    
+
+	align_chain tobj;
+	
+	string my_line;
+	getline (info_file, my_line);
+	//cout << number_of_genomes << endl;
+	vector< string> words; 
+	tobj.fsplit(my_line, " ", words);
+		
+	if((unsigned long)atol(words[0].c_str())>genome_list.size()){	    	
+	    cerr << "Warning: Given number of seqs in info file should be less or equal the given seqs, default is taken \n";
+	}
+	genome_size_array=new long [number_of_genomes];
+	for(int k=0;k<number_of_genomes;k++){
+	    genome_size_array[k]=atol(words[k+1].c_str());
+	    //  cout << genome_size_array[k]<< endl;
+	}
+	info_file.close();
+//      for testing
+//	string tmpseq= tobj.GetSeqFromFastaFileReverseComplement ((long)10,(long)30,(long)540,tfile_handle,tmp_start_ofs);
+//	cout << tmpseq<< endl << "done" << endl;
+//	close(tfile_handle);
+//	exit(0);
+
+    }
+
+/// end test
+//    cerr << direction << endl;
+
+    /* aktuelle cDNA, zuerst leer */
+    align_chain* akt = NULL;
+    /* Zeilen lesen */
+    while (getline (in, zeile)) {
+	
+	
+	//cout << "Zeile " << zeile << "\n";
+	//cout << "Zeile charachetr 1: " << zeile.c_str()[0] << "\n";
+
+	if (zeile.substr (0, 1).compare (">") == 0) {
+	    if(relative_flag==1)getline(in_ctg,ctg_zeile);
+	    continue;
+	}
+	if (zeile.substr (0, 1).compare ("\n") == 0) {
+	    if(relative_flag==1)getline(in_ctg,ctg_zeile);
+	    continue;
+	}
+	
+	/* Headerzeile */
+	if (zeile.substr (0, 1).compare ("#") == 0) {
+	    cdna_counter++;
+	    
+	    /* beim ersten Mal nicht reingehen */
+	    if (akt != NULL) {
+			
+
+		parse_contig_line(ctg_zeile,contig_offset_array,contig_id_array,number_of_genomes,akt);
+				
+                /* aktuelle cDNA bearbeiten */
+		int res_ret=akt->check_chain_file_consistency();
+		
+		
+		if(res_ret!=0){
+		    if(res_ret==1){
+			cerr << "Error: Non consistency in chain file at chain no. "<<chain_no  << ", use the prgoram invert_matches\n";
+		    }
+		    else{
+			cerr << "Error: Boundaries of chain no. "<<chain_no  << " is laregr than input sequences \n";
+		    }
+		    in.close ();
+		    
+		    for(int i=0;i<number_of_genomes;i++){
+			close(genome_files_handles[i]);
+		    }
+		    if(genome_files_handles!=NULL){
+			delete[] genome_files_handles;genome_files_handles=NULL;
+		    }
+		    if(start_offset_array!=NULL){
+			delete[] start_offset_array;start_offset_array=NULL;
+		    }
+		    if(akt!=NULL){delete akt;akt=NULL;}
+		    if(genome_size_array!=NULL){delete[] genome_size_array;genome_size_array=NULL;}
+		    if(contig_offset_array!=NULL){delete[] contig_offset_array;contig_offset_array=NULL;}
+		    if(contig_id_array!=NULL){delete[] contig_id_array;contig_id_array=NULL;}
+		    if(fasta_line_size_array!=NULL){delete[] fasta_line_size_array;fasta_line_size_array=NULL;}
+		    if(all_contigs_array!=NULL){ delete[] all_contigs_array;all_contigs_array=NULL;}
+		    cerr << "Error: unconcisistent chain file\n";
+		    exit (1);
+		}
+		
+		akt-> set_reverse_complement_parameters(genome_size_array,direction);
+		akt-> set_contig_offset_array(relative_flag,contig_offset_array,contig_id_array,all_contigs_array,palindrome_flag);
+		akt-> process_chain(output_mode,fragment_output_mode,in_aligned_gap_threshold);		
+		/* aktuelle chain loeschen, Speicher freigeben */
+		if(akt!=NULL){
+		    delete akt;
+		    akt=NULL;
+		}
+	    }
+	    
+	    /* neue (aktuelle) cDNA */
+	    akt = new align_chain(number_of_genomes,genome_files_handles,start_offset_array);
+	    akt-> set_reverse_complement_parameters(genome_size_array,direction);
+	    akt->setClustalw(clustalw_prog);
+	    chain_no++;
+	    akt->setID(chain_no);		    
+	    akt->set_fasta_line_size_array(fasta_line_size_array);
+	    
+	}	
+	/* Fragmentzeile */
+	else {
+	    /* Fragment hinzufuegen */	    
+	    if(akt!=NULL)
+	    akt -> addFragment (zeile);
+	    //cout << "Add fragment Done\n";
+	}
+	if(relative_flag==1)getline(in_ctg,ctg_zeile);
+    }// end while
+
+    /* letzte eingelesene cDNA */
+    //cerr << ctg_zeile << endl;
+    parse_contig_line(ctg_zeile,contig_offset_array,contig_id_array,number_of_genomes,akt);
+
+    int res_ret=akt->check_chain_file_consistency();
+    if(res_ret!=0){
+	if(res_ret==1){
+	    cerr << "Error: Non consistency in chain file at chain no. "<<chain_no  << ", use the prgoram invert_matches\n";
+	}
+	else{
+	    cerr << "Error: Boundaries of chain no. "<<chain_no  << " is laregr than input sequences \n";
+	}
+	
+	in.close ();
+	
+	for(int i=0;i<number_of_genomes;i++){
+	    close(genome_files_handles[i]);
+	}
+	if(genome_files_handles!=NULL){
+	    delete[] genome_files_handles;
+	    genome_files_handles==NULL;
+	}
+	if(start_offset_array!=NULL){
+	    delete[] start_offset_array;
+	     start_offset_array=NULL;
+	}
+	if(genome_size_array!=NULL){
+	    delete[] genome_size_array;
+	    genome_size_array=NULL;
+	}
+	if(contig_offset_array!=NULL){
+	    delete[] contig_offset_array;
+	    contig_offset_array=NULL;
+	}
+	if(contig_id_array!=NULL){
+	    delete[] contig_id_array;
+	    contig_id_array=NULL;
+	}
+	if(fasta_line_size_array!=NULL){
+	    delete[] fasta_line_size_array;
+	    fasta_line_size_array=NULL;
+	}
+	if(all_contigs_array!=NULL){
+	    delete[] all_contigs_array;
+	    all_contigs_array=NULL;
+	}
+	if(akt!=NULL){
+	    delete akt;
+	    akt=NULL;
+	}
+	genome_list.clear();
+	orig_genome_list.clear();
+	exit (1);
+    }
+    
+    akt-> set_reverse_complement_parameters(genome_size_array,direction);
+    akt-> set_contig_offset_array(relative_flag,contig_offset_array,contig_id_array,all_contigs_array,palindrome_flag);
+    akt->process_chain(output_mode,fragment_output_mode,in_aligned_gap_threshold);
+    
+    /* endgueltig loeschen */
+    if(akt!=NULL){
+	delete akt;
+	akt=NULL;
+    }
+	
+    
+    /* Aufraeumen */
+    in.close ();
+    if(relative_flag==1){
+	in_ctg.close();
+    }
+    for(int i=0;i<number_of_genomes;i++){
+	close(genome_files_handles[i]);
+    }
+    if(genome_files_handles!=NULL){
+	delete[] genome_files_handles;
+	genome_files_handles==NULL;
+    }
+    if(start_offset_array!=NULL){
+	delete[] start_offset_array;
+	start_offset_array=NULL;
+    }
+    if(genome_size_array!=NULL){
+	delete[] genome_size_array;
+	genome_size_array=NULL;
+    }
+    if(contig_offset_array!=NULL){
+	delete[] contig_offset_array;
+	contig_offset_array=NULL;
+    }
+    if(contig_id_array!=NULL){
+	delete[] contig_id_array;
+	contig_id_array=NULL;
+    }
+    if(fasta_line_size_array!=NULL){
+	delete[] fasta_line_size_array;
+	fasta_line_size_array=NULL;
+    }
+    if(all_contigs_array!=NULL){
+	delete[] all_contigs_array;
+	    all_contigs_array=NULL;
+    }
+    if(akt!=NULL){
+	delete akt;
+	akt=NULL;
+    }
+
+/*
+    delete genome_files_handles;
+    delete start_offset_array;;
+    if(genome_size_array!=NULL)delete genome_size_array;
+    if(fasta_line_size_array!=NULL)delete fasta_line_size_array;
+    if(contig_offset_array!=NULL) delete contig_offset_array;
+    if(contig_id_array!=NULL)delete contig_id_array;
+    if(all_contigs_array!=NULL) delete all_contigs_array;
+    delete akt;
+*/
+
+    genome_list.clear();
+    orig_genome_list.clear();
+    //cout << "HURRRRRRRRRRRRRRRRRA";
+    return 0;
+}		  
+
+int prepare_sequences_in_file(char* file_name,long in_fasta_line_size,contigs* contig_obj){
+    string zeile;
+    ifstream in_file_obj (file_name, ios::in);
+    string out_file_name=file_name;
+//    vector <long> contig_size_list;
+
+    out_file_name=out_file_name+".ready";
+
+    //cout << "Ready file: " << out_file_name<< endl;
+
+    ofstream out_file_obj ((char*)out_file_name.c_str(), ios::out);
+    long i=0;
+    long k=0;
+    if (!in_file_obj) {
+	cerr << "Error: Cannot open chain file!\n";
+	return(1);
+    }
+
+    getline (in_file_obj, zeile);
+    out_file_obj << "> concatenated files \n";
+
+    while (getline (in_file_obj, zeile)) {
+	if (zeile.substr (0, 1).compare (">") == 0) {	   
+	    out_file_obj << ((char)'X');	    
+	    
+	    if(contig_obj->contig_size_list.size()==0){
+		contig_obj->contig_size_list.push_back(k);	       
+	    }
+	    else{
+		contig_obj->contig_size_list.push_back(k);		
+	    }
+	    //cerr << file_name << " Contig_size: " << contig_obj->contig_size_list[contig_obj->contig_size_list.size()-1] << " " << i << endl;
+	    k=0;
+	    i++;
+
+	    if(i%in_fasta_line_size==0){
+		out_file_obj << endl;
+		
+	    }
+	    continue;
+	}
+	for(unsigned long j=0;j<zeile.size();j++){
+	    if(zeile[j]!='\n'){	       	    
+		out_file_obj << zeile[j];
+		i++;
+		k++;
+		if(i%in_fasta_line_size==0){
+		    out_file_obj << endl;
+		    
+		}
+	    }
+	}
+	
+    }
+    if(contig_obj->contig_size_list.size()==0){
+	contig_obj->contig_size_list.push_back(k);
+    }
+    else
+    {
+	contig_obj->contig_size_list.push_back(k);
+    }
+
+    //cerr << file_name << " Contig_size: " << contig_obj->contig_size_list[contig_obj->contig_size_list.size()-1] << " " << i << endl;
+    
+    //cerr << file_name << " Contig_size: " << i << endl;
+    
+    in_file_obj.close();
+    out_file_obj.close();
+    
+    return(0);
+}
+
+int set_fasta_file_length(long *fasta_line_size_array,vector<string> genome_list){
+
+    string zeile;
+
+    for(unsigned long i=0;i<genome_list.size();i++){
+	ifstream in_file_obj ((char*)(genome_list[i].c_str()), ios::in);
+	getline (in_file_obj, zeile);
+	getline (in_file_obj, zeile);
+	fasta_line_size_array[i]=zeile.size();
+	if(fasta_line_size_array[i]<1){
+	    cerr << "Error: Empty fasta file"<< endl;
+	     return(-1);
+	}
+	in_file_obj.close();
+    }
+    return(0);
+    
+}
+
+void terminate_prog(ifstream* in,long number_of_genomes,long* genome_size_array,int* genome_files_handles, long* start_offset_array,align_chain* akt){
+    in->close ();
+		    
+    for(int i=0;i<number_of_genomes;i++){
+	close(genome_files_handles[i]);
+    }
+    if(genome_files_handles!=NULL){
+	delete[] genome_files_handles;
+	genome_files_handles=NULL;
+    }
+    if(start_offset_array!=NULL){
+	delete[] start_offset_array;
+	start_offset_array=NULL;
+    }
+    if(akt!=NULL){
+	delete akt;
+	akt=NULL;
+    }
+    if(genome_size_array!=NULL){ delete[] genome_size_array;genome_size_array=NULL;}
+    exit (1);
+
+}
+
+
+
+
+int parse_contig_line(string fp,long* contig_offset_array,long * contig_id_array,long number_of_genomes,align_chain* akt)
+{
+       
+    long i = 0; 
+    char inputchar;
+    long ctg_id,start,end;
+    
+    for(long j=0;j<number_of_genomes;j++){
+	if (sscanf((fp.c_str()+i),"%lu [%lu,%lu]",&ctg_id,&start,&end) != 3)
+	{
+	    return -1;
+	}
+	
+	//cerr << "parsed: ctg_id " << ctg_id << "start:  " << start<< " end:  "<< end <<endl;
+	contig_offset_array[j]=akt->fragmente[akt->fragmente.size()-1]->positions[j].start-start;
+	contig_id_array[j]=ctg_id;
+
+	while (1)
+	{
+	    inputchar = (char) fp[i];
+	    if (inputchar == ']'){
+		i++;
+		break;
+	    }
+	    i++;
+	}
+		
+    }
+
+    //cerr << "Offsets " << contig_offset_array[0]<< " " << contig_offset_array[1]<< endl;
+    //cerr << "Finished \n";
+    /*       
+    while (1)
+    {
+	// bail out at end of line
+	inputchar = (char) fp[i];	
+	if (inputchar == '\n'){
+	    break;
+	}	
+ 	if (inputchar == '['){
+	    cerr << "parsed: start: i= " << fp[i] << endl;
+	    if (sscanf((fp.c_str()+i),"[%lu,%lu]",&start,&end) != 2)
+	    {
+		return -1;
+	    }	
+	    cerr << "parsed: start:  " << start<< " end:  "<< end <<endl;	
+	    
+	}
+	i++;
+    }
+    */
+    return 0;
+    
+}
+
+
+
+int check_empty_chain_file(char* chain_filename){
+
+    ifstream in (chain_filename, ios::in);
+    if (!in) {
+	cerr << "Error: Cannot open chain file!\n";
+	exit (1);
+    }
+    int i=0;
+    int correct=0;
+    string zeile;
+    string::size_type a = 0;
+    while((getline (in, zeile))&&(i<10)){
+	i++;
+	if (zeile.substr (0, 1).compare (">")== 0) {	
+	    continue;
+	}
+	if (zeile.substr (0, 1).compare ("\n") == 0) {	    
+	    continue;
+	}
+	//if (zeile.substr (0, 1).compare ("[") == 0) {	 
+	if((a = zeile.find_first_not_of ("[", a)) != string::npos){
+	    correct=1;
+	    break;
+	}
+    }
+    in.close ();
+    return(correct);
+ }

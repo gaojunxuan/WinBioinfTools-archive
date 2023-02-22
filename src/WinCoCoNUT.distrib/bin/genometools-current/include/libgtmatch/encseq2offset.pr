@@ -1,0 +1,11 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+Seqpos *encseqtable2seqoffsets(Seqpos *totallength,
+                               Specialcharinfo *specialcharinfo,
+                               const Suffixarray *suffixarraytable,
+                               unsigned int numofindexes);
+
+#ifdef __cplusplus
+}
+#endif

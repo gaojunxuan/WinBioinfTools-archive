@@ -1,0 +1,15 @@
+# format: ch_id f_id s1 e1 ... sk ek score
+# ch_id: chain's id 
+# f_id: fragment's id 
+# s1: fragment's start position in genome 1 
+# e1: fragment's end position in genome 1 
+# sk: fragment's start position in genome k 
+# ek: fragment's end position in genome k 
+# score:  score of the chain 
+# num. of genomes: 2
+# total num. of fragments: 5
+# max score of a local chain: 435.000000
+ 1   3    45    49    80    90  324.000000
+ 1   2    16    26    65    75  324.000000
+ 1   1     1    14    50    63  324.000000
+ 2   4     1     2     2     3  425.000000

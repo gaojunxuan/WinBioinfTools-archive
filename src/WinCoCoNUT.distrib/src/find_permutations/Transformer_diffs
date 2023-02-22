@@ -1,0 +1,209 @@
+4,5d3
+< #include <string>
+< 
+75d72
+< //
+78c75
+<     cout<<"cannot open infile "<<infile<<endl;
+---
+>     cerr<<"cannot open infile "<<infile<<endl;
+89,105c86,91
+<   while(!infilestream.eof()){
+<     infilestream >>testcomment;
+<     if ( strcmp(testcomment, "\n") == 0 || strcmp(testcomment, "0\t0\n") == 0)  continue;
+<     if (strcmp(testcomment,"#--")==0 || strcmp(testcomment, "") == 0 ){
+<       infilestream>>testcomment; 
+< 	if(strcmp(testcomment, "MATCHES") == 0)
+<       		{infilestream>>testcomment;}
+<       if (strcmp(testcomment,"pp") == 0 || strcmp(testcomment, "FORWARD") == 0 ){
+< 	if(strcmp(testcomment, "FORWARD") == 0 ) infilestream.ignore(999, '\n');
+< 	forwardMatches[0] = 1; forwardMatches[1] = 1;
+< 	continue;
+<       }
+<       if (strcmp(testcomment,"pm") == 0 || strcmp(testcomment, "REVERSE") == 0){
+< 	if(strcmp(testcomment, "REVERSE") == 0 ) infilestream.ignore(999, '\n');
+< 	forwardMatches[0] = 1; forwardMatches[1] = 0;
+< 	continue;
+<       }
+---
+>   forwardMatches[0] = 0;  
+>   while(!infilestream.eof())
+>   {
+>     if (infilestream.peek() == '\n'){
+>       infilestream.ignore(999, '\n');
+>       continue;
+107,108c93,105
+<  
+<     x1 = atoi(testcomment);
+---
+>     if (infilestream.peek() == '0'){
+>       infilestream.ignore(999, '\n');
+>       continue;
+>     }
+>     if (infilestream.peek() == '#'){
+>       if (forwardMatches[0] == 0) {
+>     	forwardMatches[0] = 1; forwardMatches[1] = 1; }
+>       else
+>         forwardMatches[1] = 0;  
+>       infilestream.ignore(999, '\n');  
+>       continue;
+>     }  
+>     infilestream >> x1;
+112d108
+< if(infilestream.eof()) break;
+113a110,112
+>     if (infilestream.eof()) break;
+>     
+> //    cerr << x1 << "  " << y1 << "  " << x2 << "  " << y2 << endl;
+121,128d119
+< 	if(forwardMatches[1] ==1){ //forward mathc
+< 		assert(x1 < x2);
+< 		assert(y1 < y2);
+< 	}
+< 	else { //reverse match
+< 		assert(x1 < x2);
+< 		assert(y2 < y1);
+< 	}
+140d130
+< 
+143c133
+<   infilestream.close();
+---
+>   infilestream.close();  
+226a217,226
+>     
+> #if 0
+>     if ((*startPoint1).coordinates[0] >= (*endPoint1).coordinates[0])
+>         cerr << (*startPoint1).coordinates[0] << " >= " <<
+>             (*endPoint1).coordinates[0] << endl;
+>     if ((*startPoint2).coordinates[0] >= (*endPoint2).coordinates[0])   
+>         cerr << (*startPoint2).coordinates[0] << " >= " <<
+>             (*endPoint2).coordinates[0] << endl;
+> #endif
+>             
+229d228
+< 
+417a417,438
+>     ofstream output;    // only for G2 respective G1
+>     
+>     // !!DEBUG
+>     int* debug = new int[permutationY->size() + 1];
+>     for (int i = 0; i <= permutationY->size(); i++)
+>         debug[i] = 0;
+>     for (int i = 0; i < permutationY->size(); i++)
+>     {
+>         if ((*permutationY)[i] > 0)
+>             debug[(*permutationY)[i]]++;
+>         else
+>             debug[-(*permutationY)[i]]++;
+>     }
+>     for (int i = 1; i <= permutationY->size(); i++)
+>     {
+>         if (debug[i] != 1)
+>             cerr << "error in permutation\n";
+>     }            
+>     
+>     output.open("postprocessed.dat");
+>     output << "# permutation size\n";
+>     output << permutationY->size() << endl;
+418a440
+>     output << "# Y-Permutation (second genome with respect to the first one):\n";
+419a442
+>  	copy(permutationY->begin(),permutationY->end(), ostream_iterator<int>(output," "));
+420a444,451
+>     output << endl;
+>     output << "# First genome (= id)\n";
+>     for (int i = 0; i < permutationY->size(); i++)
+>         output << i+1 << " ";
+>     output << endl;
+>     output.close();
+>     
+>     
+425a457,459
+>     
+>     delete[] debug;
+>     
+511c545
+< 	//vector<long int> csb(3); vector<long int> cse(3);
+---
+> 	vector<long int> csb(3); vector<long int> cse(3);
+512a547
+>     float percOverlap;
+533,534c568
+< 			//csb[i] = 0; cse[i] = 0;
+< 			continue;
+---
+> 			csb[i] = 0; cse[i] = 0;
+539,540c573
+< 				//csb[i] = start1; cse[i] = end1;
+< 				continue;
+---
+> 				csb[i] = start1; cse[i] = end1;
+544,545c577
+< 				//csb[i] = start2; cse[i] = end2;
+< 				continue;
+---
+> 				csb[i] = start2; cse[i] = end2;
+549c581
+< 				//csb[i] = start2; cse[i] = end1;
+---
+> 				csb[i] = start2; cse[i] = end1;
+551,556c583,598
+< 				if (end1-start2+1 <= percentage*(end1-start1+1)){//if there is only a small overlap compared to the size of the interval: resize interval so that there is no overlap any more
+< 					Point* endP1 = (*Intervals)[idnc].end();
+< 					long int overlap_size = end1-start2+1;
+< 					for(unsigned dim = 0; dim < dimensions; dim++){
+< 						endP1->coordinates[dim] -= overlap_size;
+< 					}
+---
+>                 percOverlap = (end1-start2+1) / (end1-start1+1);
+> 				if (percOverlap <= percentage){//if there is only a small overlap compared to the size of the interval: resize interval so that there is no overlap any more
+>                     if (i1_1dim.p1 <= i1_1dim.p2){   // overlapping dimension not reversed -> move endpoints               
+>     					Point* startP1 = (*Intervals)[idnc].begin();
+> 					    Point* endP1 = (*Intervals)[idnc].end();
+>     					for(unsigned dim = 0; dim < dimensions; dim++){
+>                             endP1->coordinates[dim] -= (long int)(percOverlap * (endP1->coordinates[dim] - startP1->coordinates[dim]));
+>                         }
+>                     }
+>                     else{   // overlapping dimension reversed -> move startpoints               
+>     					Point* startP1 = (*Intervals)[idnc].begin();
+> 					    Point* endP1 = (*Intervals)[idnc].end();
+>     					for(unsigned dim = 0; dim < dimensions; dim++){
+>                             startP1->coordinates[dim] += (long int)(percOverlap * (endP1->coordinates[dim] - startP1->coordinates[dim]));
+>                         }
+>                     }
+561,567c603,620
+< 				//csb[i] = start1; cse[i] = end2;
+< 				if(end2-start1+1 <= percentage*(end1-start1+1)){//if there is only a small overlap compared to the size of the interval: resize interval so that there is no overlap any more
+< 					Point* begP1 = (*Intervals)[idnc].begin();
+< 					long int overlap_size = end2-start1+1;
+< 					for(unsigned dim = 0; dim < dimensions; dim++){
+< 						begP1->coordinates[dim] += overlap_size;
+< 					}
+---
+> 				csb[i] = start1; cse[i] = end2;
+> 				//check size of overlap compared with size of not choosen interval
+>                 percOverlap = (end2-start1+1) / (end1-start1+1);
+> 				if (percOverlap <= percentage){//if there is only a small overlap compared to the size of the interval: resize interval so that there is no overlap any more
+>                     if (i1_1dim.p1 <= i1_1dim.p2){   // overlapping dimension not reversed -> move startpoints               
+>     					Point* startP1 = (*Intervals)[idnc].begin();
+> 					    Point* endP1 = (*Intervals)[idnc].end();
+>     					for(unsigned dim = 0; dim < dimensions; dim++){
+>                             startP1->coordinates[dim] += (long int)(percOverlap * (endP1->coordinates[dim] - startP1->coordinates[dim]));
+>                         }
+>                     }
+>                     else{   // overlapping dimension reversed -> move endpoints               
+>     					Point* startP1 = (*Intervals)[idnc].begin();
+> 					    Point* endP1 = (*Intervals)[idnc].end();
+>     					for(unsigned dim = 0; dim < dimensions; dim++){
+>                             endP1->coordinates[dim] -= (long int)(percOverlap * (endP1->coordinates[dim] - startP1->coordinates[dim]));
+>                         }
+>                     }
+636c689
+< 	printPermutations();
+---
+> //	printPermutations();
+640d692
+< 	
+642a695
+> 

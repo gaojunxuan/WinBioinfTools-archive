@@ -1,0 +1,14 @@
+chainer2permutation.x test.dat 4 -overlap 1 0.5
+
+chainer2permutation.x fragment.mm.ccn.dat 4 -overlap 1 0.5 > output
+
+
+To Do
+
+- correct the number of zeros in the dat file-----------done
+- compute for drawing chains----------------------------done
+- make a shift to consider zeros------------------------done
+- adjust working directory------------------------------done
+- modify generate combinations--------------------------done
+- correct boundaries, when overlapping------------------done
+- filter repeats-----------------------------------------done

@@ -1,0 +1,42 @@
+#LD=/usr/local/bin/g++
+#GNULIB=/usr/local/lib
+#GNULIB64=/usr/local/lib/sparcv9
+# Linux
+#LD=g++ -O3 -Wall
+#GNULIB=/usr/lib
+#GNULIB64=/usr/bin/lib/sparcv9
+
+#LIBGNU=-L$(GNULIB) -R$(GNULIB)
+
+include ../Makedef
+
+OFILES=alichainer.o fragment.o align_chain.o memmap.o contigs.o alignment.o 
+EXEFILE=alichainer 
+
+$(EXEFILE):	$(OFILES)
+	$(LD) $(COPT) $(LIBGNU) $(OFILES) -o $(EXEFILE)
+alichainer.o:	alichainer.cpp fragment.hpp align_chain.hpp memmap.hpp contigs.hpp alignment.cpp alignment.hpp
+	$(LD) $(COPT) $(LIBGNU) -c alichainer.cpp
+alignment.o:	alignment.cpp alignment.hpp
+	$(LD) $(COPT) $(LIBGNU) -c alignment.cpp
+#greedy_align.o:	greedy_align.cpp greedy_align.hpp
+#	$(LD) $(LIBGNU) -c greedy_align.cpp
+#bit_vektor.o:	bit_vektor.cpp bit_vektor.hpp
+#	$(LD) $(LIBGNU) -c bit_vektor.cpp
+fragment.o:	fragment.cpp fragment.hpp 
+	$(LD) $(COPT) $(LIBGNU) -c fragment.cpp
+align_chain.o:	align_chain.cpp align_chain.hpp fragment.hpp memmap.hpp
+	$(LD) $(COPT) $(LIBGNU) -c align_chain.cpp
+memmap.o: memmap.cpp memmap.hpp
+	$(LD) $(COPT) $(LIBGNU) -c memmap.cpp
+contigs.o: contigs.cpp contigs.hpp
+	$(LD) $(COPT) $(LIBGNU) -c contigs.cpp
+	$(LD) $(COPT) $(LIBGNU) invert_matches.cpp -o invert_matches
+
+
+.PHONY:	clean_all clean
+clean_all:
+	rm -f $(OFILES) $(EXEFILE)
+clean:
+	rm -f $(OFILES) $(EXEFILE)
+

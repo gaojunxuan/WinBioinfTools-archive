@@ -1,0 +1,17 @@
+# PATHS
+
+#fragment generation  directory for the program vmatch
+#FRAGMENT=bin/multimat_vmatch
+FRAGMENT=home/MicroSoftCoCoNUT/bin/genometools-current/bin
+
+#fragment generation  directory for program multimal/ramaco
+#FRAGMENT_MULT=bin/multimat_vmatch
+FRAGMENT_MULT=home/MicroSoftCoCoNUT/bin/genometools-current/bin
+
+#chaining directory
+CHAINING=home/MicroSoftCoCoNUT/bin/chainer/
+#CHAINING=C:/cygwin/home/h/MicroSoftCoCoNUT/bin/chainer/
+
+
+#align directory
+ALIGN=home/MicroSoftCoCoNUT/bin/align

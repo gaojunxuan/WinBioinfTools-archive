@@ -1,0 +1,196 @@
+#!/usr/bin/perl
+
+#format transformation - again...
+#here: reverse complement chains
+
+$argc = @ARGV;
+
+if ($argc != 2)
+   {
+     print "usage: \n perl ccn2gnuplot_multimat.pl infile.info file_extension (e.g., cnn)\n";
+   }
+
+my $infofile = $ARGV[0];
+my $file_extension = $ARGV[1];
+#expected information in infofile:
+#1st line: number of genomes (=k)
+#k lines with the lengths of the k genomes (2nd line of infofile: length of 1st genome and so on)
+#
+
+
+open(infof,"<$infofile")
+  or die "failed to open $infofile \n";
+@infolines = <infof>;
+close(infof);
+#print $infolines[0];
+my $first_line=$infolines[0];
+my @first_line_array= split(/\s/, $first_line);
+
+$number = $first_line_array[0]; #number of genomes
+
+#print " HALLO ".$first_line_array[0]. " ".$first_line_array[1]. " ".$first_line_array[2]. " ".$first_line_array[3]. " ".$first_line_array[4]."OVER \n";
+#print "number of genomes = $number \n";
+
+@length;
+@input_files;
+for($i = 1; $i <= $number; $i++){
+    $l = $first_line_array[$i]; 
+    $length[$i-1] =  $l;
+}
+
+$number_of_input_files = 2**($number-1);
+
+########## modified to handle forward  #############
+
+my $check_sum_no_of_files=0;
+@tmp_infolines=@infolines;
+$num_of_lines=@tmp_infolines;
+for($x=1;$x<$num_of_lines;$x++){
+    chop $tmp_infolines[$x];
+    if(-e $tmp_infolines[$x]){
+	$check_sum_no_of_files++;
+    }
+}
+
+$number_of_input_files=$check_sum_no_of_files;
+
+#print "HALOOOOOOOOO $number_of_input_files \n";
+#End############# modfied to handle forward #######
+
+for($i = 0; $i < $number_of_input_files; $i++){
+	$i_f = $infolines[$i + 1];	
+	chop($i_f);
+	$input_files[$i] = $i_f.".".$file_extension;
+	#print $input_files[$i]."\n";
+}
+
+#fuer jedes infile müssen die matches bzgl jeweils zwei genomen rausgeschrieben werden
+foreach $infile (@input_files){
+	#determine orientation of match in $infile
+	#print "ccn2gnuplot.pl: processing infile $infile\n";
+	$infile =~m/((p|m)+)\.ccn/;
+	$orientation = $1; # zb bei drei genomen ppm
+	#print " HALLO".$orientation."\n";
+	@direction = split(//, $orientation);
+#	unshift(@direction,'p');#match is always on the leading strand in the first genome
+	#print " HALLO".$direction[0].$direction[1].$direction[2]."\n";
+	my $direction_for_print = "";
+	
+	#foreach $c (@direction){
+	#	if ($c eq 'p'){
+	#		$direction_for_print = $direction_for_print.'p' #plus
+	#	}
+	#	else{ #$c == 'm'
+	#		$direction_for_print = $direction_for_print.'m' #minus
+	#	}
+
+	#}
+	$direction_for_print=$orientation;
+	#print " HALLO2  ".$direction_for_print."\n";
+	@combinations = ();
+	@outfiles = ();
+	for ($i= 1 ; $i < $number; $i++){
+		for ($j = $i+1; $j <= $number; $j++){
+			$combination = "$i"."x"."$j";
+			push(@combinations, $combination);
+			$outfile  = $infile.".".$combination;
+			#print "outfile $outfile\n";
+			push(@outfiles, $outfile);
+			open (OUT, ">>$outfile");
+			print OUT "#-- MATCHES $direction_for_print\n";
+			for($x=0;$x<$number-1;$x++){
+			    print OUT "0\t";
+			}
+			print OUT "0\n";
+			for($x=0;$x<$number-1;$x++){
+			    print OUT "0\t";
+			}
+			print OUT "0\n\n";
+			
+		       
+			close OUT;
+		}
+	}
+	open (OUT, ">>$infile".".dat");
+	print OUT "#-- MATCHES $direction_for_print\n";
+	for($x=0;$x<$number-1;$x++){
+	    print OUT "0\t";
+	}
+	print OUT "0\n";
+	for($x=0;$x<$number-1;$x++){
+	    print OUT "0\t";
+	}
+	print OUT "0\n\n";
+	
+	close OUT;
+
+	# zB bei 3 eingabegenomen: combinatins = 12, 13, 23
+	open (IN, "<$infile")
+	  or die "failed to open $infile \n";
+	@infile_lines = <IN>;
+	close IN;
+	$line_number = 0;
+	foreach $line (@infile_lines){
+
+		chop($line);
+		$line_number++;
+		#if ($line_number == 15){exit;}
+		if ($line =~ m/(\[\d+,\d+\][\s\t]+)+\[\d+,\d+\] /){
+		@start = (); @end = ();
+		for ($i = 0; $i < $number; $i++){
+		    $line =~ /(\[\d+,\d+\][\s\t]+){$i}?\[(\d+),(\d+)\]/;
+		    #i-tes tupel finden
+		    if(($direction[$i] eq 'p')|| ($direction[$i] eq '+')) {
+			#print "leading strand\n";
+			push(@start, $2);
+			push(@end, $3);
+		    }
+		    elsif(($direction[$i] eq 'm')||($direction[$i] eq '-')){
+			push(@start,$length[$i] -$2-1);#$3 nach $2 geandert
+			    push(@end, $length[$i]-$3-1);
+			#print "lagging strand\n";
+		    }
+		    else{print "Problem with direction $direction[$i] \n"; exit;}
+		}
+#for
+		#start und endpunkte fuer jeweils zwei genome in entsprechendes file schreiben
+		foreach $combination(@combinations){
+		    @genome_ids = split(//, $combination);
+		    if($direction[($genome_ids[0]-1)] eq "p"){
+			
+			open (OUT, ">>$infile."."$combination");
+			print OUT "$start[$genome_ids[0]-1]\t$start[$genome_ids[1]-1]\n$end[$genome_ids[0]-1]\t$end[$genome_ids[1]-1]\n\n";
+			close OUT;
+		    }
+		    elsif(($direction[($genome_ids[0]-1)] eq "m") and ($direction[($genome_ids[1]-1)] eq "p")){
+			open (OUT, ">>$infile."."$combination");
+			print OUT "$start[$genome_ids[0]-1]\t$start[$genome_ids[1]-1]\n$end[$genome_ids[0]-1]\t$end[$genome_ids[1]-1]\n\n";
+			close OUT;			
+		    }
+		    elsif(($direction[($genome_ids[0]-1)] eq "m") and ($direction[($genome_ids[1]-1)] eq "m")){
+			open (OUT, ">>$infile."."$combination");
+			print OUT "$start[$genome_ids[0]-1]\t$start[$genome_ids[1]-1]\n$end[$genome_ids[0]-1]\t$end[$genome_ids[1]-1]\n\n";
+			close OUT;
+		    }
+		    
+		    #exit;
+		    
+		}#foreach
+
+		    open(OUT, ">>$infile".".dat");
+		foreach $sp (@start){
+		    print OUT "$sp\t";
+		} print OUT "\n";
+		foreach $ep (@end){
+		    print OUT "$ep\t";
+		} print OUT "\n\n";
+		close OUT;
+		#exit;
+	    }#if
+	    }#foreach $line
+	foreach $outfile (@outfiles){
+		open (OUT, ">>$outfile");
+		print OUT "\n";
+		close OUT;
+	}
+}#foreach $infile

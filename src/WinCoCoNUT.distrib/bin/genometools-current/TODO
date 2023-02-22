@@ -1,0 +1,64 @@
+bugs:
+-----
+
+
+feature requests:
+-----------------
+
+- implement skiplist class
+- replace msort() routine with a routine covered by LICENSE
+- replace the st (hashtable) implementation with own implementation
+- replace sscanf calls
+- consensus_sa: fuzzlength, undetermined strand
+- glob() -> fnmatch()
+- coverage tests
+- use tool from tridge to find functions which are are not used
+- write check script to check for error_check()
+- EXIT_SUCCESS und EXIT_FAILURE only in gtr.c and gt.c
+- no exit() calls inside library
+- update design.html, describe interface inheritance
+- check random number generation
+- check for circles
+- `gt eval`: measure nucleotide level
+- write proper memory allocator
+- function similary to option_new_choice(), but which allows to set multiple
+  strings from the given set
+- replace genfile_getc() with genfile_xfgetc()
+- make sure that exons and mRNAs of a gene lie in the range defined by the gene
+- compute the phase correctly (in cds_visitor?)
+- establish naming conventions and use them throughout entire codebase
+- implement simpler solution for multiset_matching
+- implement cleanup stack exeception handling
+- compute correlation coefficient and average in `gt eval`
+- write qsort_r
+- try to write dynalloc() as static inline function (without always setting the
+  return pointer)
+
+
+merge libgtcore and libgtmatch:
+-------------------------------
+
+- replace FastaReader with SeqIterator
+- move alphabet to core
+- Alphabet (Stefan: ersetze alphabet.pr durch alphadef.h, Gordon: evtl. mergen
+  mit Alpha)
+- Encodedseq und Bioseq mergen ()
+  guesprot.c
+
+- merge Timer und measure-time.c (Ereignis, formatierter String)
+- queue unit test (Stefan)
+
+
+view tool:
+----------
+
+- allow to specify the ``type order'' of tracks in config file
+- allow to sort tracks by type and then by filename (in the order specified
+  on the command line) or the other way round (one is the default, one is
+  switched on by a command line option)
+
+
+BitPackArray/BitPackClass:
+--------------------------
+
+- use naming conventions (e.g., bitpackarray_new instead of newBitPackArray)

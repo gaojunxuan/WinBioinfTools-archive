@@ -1,0 +1,5 @@
+FRAGMENT= -p -d -v -l 22 
+CHAINING= -l -chainerformat -lw 25 -gc 500 -length 44 
+CHAINING= -l -chainerformat -lw 100 -gc 3000 -length 1000
+ALIGN= -palindrome 
+SYNTENY= -overlap1 0.2 -filterrep 0.7

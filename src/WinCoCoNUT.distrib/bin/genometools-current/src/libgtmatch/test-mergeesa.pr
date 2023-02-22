@@ -1,0 +1,11 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+int performtheindexmerging(const Str *storeindex,
+                           const StrArray *indexnametab,
+                           Verboseinfo *verboseinfo,
+                           Error *err);
+
+#ifdef __cplusplus
+}
+#endif

@@ -1,0 +1,68 @@
+clustalw -batch -align -type=DNA -output=GDE -outorder=INPUT -dnamatrix=IUB -infile=tmpffXg
+
+bearbeite_naiv_final -chain inv_org_matches.ctg -f
+../testdata/chlamediae_multimat/AE001273.fasta
+../testdata/chlamediae_multimat/AE001363.fasta
+
+
+time alichainer -chain fragment.mm.pmp.chn.ordered  -match -f ../testdata/chlamediae_multimat/AE001273.fasta ../testdata/chlamediae_multimat/AE001363.fasta ../testdata/chlamediae_multimat/AE002160.fasta  -gl 1000 -dirc pmp -info fragment.mm.info
+
+- check chain boundary against file size -----------done
+- check NNN masked sequences  ----------------------done
+- check pairwise alignment option
+- check how to add clustalw parameters
+- option for relative positions --------------------done
+- option for reverse complement coordinate
+
+time alichainer -chain
+../testdata/draft_genomes/fragment_draft.mm.pp.chn.ordered   -clustalw
+./clustalw  -f ../testdata/draft_genomes/NC_003923.fna.draft.shuffled ../testdata/draft_genomes/NC_002745.fna.draft.shuffled -draft -o lineal
+
+
+
+time alichainer -chain ../testdata/draft_genomes/fragment_draft.mm.pp.chn.ordered   -clustalw ./clustalw  -f ../testdata/draft_genomes/NC_003923.fna.draft.shuffled ../testdata/draft_genomes/NC_002745.fna.draft.shuffled -draft -relative ../testdata/draft_genomes/fragment_draft.mm.pp.chn.ctg.ordered > tmp.draft
+
+
+time alichainer -chain
+../testdata/draft_genomes/fragment_draft_pl.mm.pm.chn.ordered   -clustalw
+./clustalw  -f ../testdata/draft_genomes/NC_003923.fna.draft.shuffled
+../testdata/draft_genomes/NC_002745.fna.draft.shuffled -draft  -dirc pm -info
+../testdata/draft_genomes/fragment_draft_pl.mm.info -relative
+../testdata/draft_genomes/fragment_draft_pl.mm.pm.chn.ctg.ordered >
+tmp.draft.pal
+
+
+time alichainer -chain
+../testdata/draft_genomes/fragment_draft_pl.mm.pm.chn.ordered   -clustalw
+./clustalw  -f ../testdata/draft_genomes/NC_003923.fna.draft.shuffled
+../testdata/draft_genomes/NC_002745.fna.draft.shuffled -draft  -dirc pm -info
+../testdata/draft_genomes/fragment_draft_pl.mm.info -relative
+../testdata/draft_genomes/fragment_draft_pl.mm.pm.chn.ctg.ordered  -palindrome
+> tmp.draft.rel.pal.new
+
+
+
+valgrind --leak-check=yes alichainer -clustalw ../../bin/align/clustalw
+-palindrome   -chain
+../../testdataCoCoNUT/chlamediae_multimat/fragment.mm.pp.chn.ordered  -dirc pp
+-info ../../testdataCoCoNUT/chlamediae_multimat/fragment.mm.info  -f
+../../testdataCoCoNUT/chlamediae_multimat/AE001273.fasta
+../../testdataCoCoNUT/chlamediae_multimat/AE001363.fasta
+
+
+valgrind  --db-attach=yes  alichainer -clustalw ../../bin/align/clustalw
+-palindrome   -chain
+../../testdataCoCoNUT/chlamediae_multimat/fragment.mm.pp.chn.ordered  -dirc pp
+-info ../../testdataCoCoNUT/chlamediae_multimat/fragment.mm.info  -f
+../../testdataCoCoNUT/chlamediae_multimat/AE001273.fasta
+../../testdataCoCoNUT/chlamediae_multimat/AE001363.fasta
+
+
+
+Running: bin/align/invert_matches  testdata/shig/fragment.mm.pm.chn
+Running bin/align/alichainer -clustalw bin/align/clustalw  -palindrome   -chain testdata/shig/fragment.mm.pm.chn.ordered  -dirc pm  -info testdata/shig/fragment.mm.info  -f   testdata/shig/NC_000913.fasta testdata/shig/NC_007384.fasta > testdata/shig/fragment.mm.pm.chn.align
+Running: bin/align/invert_matches  testdata/shig/fragment.mm.pp.chn
+Running bin/align/alichainer -clustalw bin/align/clustalw  -palindrome   -chain testdata/shig/fragment.mm.pp.chn.ordered  -dirc pp  -info testdata/shig/fragment.mm.info  -f   testdata/shig/NC_000913.fasta testdata/shig/NC_007384.fasta > testdata/shig/fragment.mm.pp.chn.align
+
+
+alichainer -clustalw clustalw  -palindrome   -chain ../../testdata/shig/fragment.mm.pm.chn.ordered  -dirc pm  -info ../../testdata/shig/fragment.mm.info  -f   ../../testdata/shig/NC_000913.fasta ../../testdata/shig/NC_007384.fasta > output

@@ -1,0 +1,20 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+Seqpos determinenumofcodes(unsigned int numofchars,unsigned int prefixlength);
+
+Seqpos determinenumberofspecialstostore(
+                    const Specialcharinfo *specialcharinfo);
+
+void computefmkeyvalues (Fmindex *fm,
+                         Seqpos bwtlength,
+                         unsigned int log2bsize,
+                         unsigned int log2markdist,
+                         unsigned int mapsize,
+                         unsigned int suffixlength,
+                         bool storeindexpos,
+                         const Specialcharinfo *specialcharinfo);
+
+#ifdef __cplusplus
+}
+#endif

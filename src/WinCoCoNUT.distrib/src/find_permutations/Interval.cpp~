@@ -1,0 +1,280 @@
+#include "Interval.h"
+#include "assert.h"
+using namespace std;
+
+Interval::Interval(){
+    //precedingInterval=NULL;
+}
+
+Interval::~Interval(){
+
+}
+
+Interval::Interval(Point begp, Point endp){
+  b = begp;
+  b.myInterval = this;
+  b.isStartPoint = 1;
+  e = endp;
+  e.myInterval = this;
+  e.isStartPoint = 0;
+  // precedingInterval=NULL;
+  //w = float(abs((e.coordinate - b.coordinate));
+  //w = float( e.coordinate - b.coordinate);
+  //cout<<"weight = "<<w<<endl;
+} 
+
+
+
+Interval::Interval(Point begp, Point endp, vector<bool> iF){
+  b = begp;
+  b.myInterval = this;
+  e = endp;
+  e.myInterval = this;
+  isForward.resize(3);
+  isForward = iF;
+  } 
+
+int Interval::getDirection(int dim){
+
+  if (isForward[dim]) {
+    return 1;
+  }
+  else{
+    return -1;
+  }
+}
+
+bool Interval::isDimForward(int dim){
+	if(isForward[dim])
+	return 1;
+	else
+	return 0;
+}
+
+int Interval::setCoordinates(Point begp, Point endp){
+  b = begp;
+  b.myInterval = this;
+  //b.isStartPoint = 1;
+  e = endp;
+  e.myInterval = this;
+  //e.isStartPoint = 0;
+  //w = float( e.coordinate - b.coordinate);
+  //cout<<"weight = "<<w<<endl;
+  return 0;
+}
+
+float Interval::weight(){
+  return w;
+}
+
+float Interval::weight(unsigned int dimension){
+  assert (dimension < e.coordinates.size());
+  assert (dimension < b.coordinates.size());
+  float myW = float(abs(e.coordinates[dimension] - b.coordinates[dimension])+1);
+  return myW;
+
+}
+
+Point* Interval::begin(){
+  return &b;
+}
+
+Point* Interval::end(){
+  return &e;
+}
+
+float Interval::score(){
+  return s;
+}
+
+
+int Interval::setScore(float score){
+  s = score;
+  return 0;
+}
+
+int Interval::setWeight(float weight){
+  w = weight;
+  return 0;
+}
+
+int Interval::print(){ 
+  unsigned int i;
+  for (i = 0; i < b.coordinates.size(); i++)
+    cout<<b.coordinates[i]<<"\t";
+  cout<<endl;
+  for (i = 0; i < e.coordinates.size(); i++)
+    cout<<e.coordinates[i]<<"\t";
+  cout<<endl;
+
+}
+
+int Interval::print(unsigned int dimension){
+  cout<<"start = "<<b.coordinates[dimension]<<"\tend = "<<e.coordinates[dimension]<<endl;
+  return 0;
+}
+
+//copy(xIntervalsIndizes->begin(),xIntervalsIndizes->end(), ostream_iterator<int>(cout," "));
+
+int Interval::getID(){
+  return intervalID;
+}
+
+void Interval::setID(long id){
+  intervalID = id;
+}
+
+
+//gibt true zurueck, falls der Startpunkt im ersten Interval vor dem Startpunkt des zweiten Intervals in x-Richtung liegt
+/*bool Interval::operator< (const Interval i2){
+  Point* startPoint1 = (*this).begin();
+  Point* startPoint2 = i2.begin();
+  return (*startPoint1).coordinates[0] < (*startPoint2).coordinates[0];
+  }*/
+
+bool operator< (Interval leftI, Interval rightI){
+  Point* startPoint1 = leftI.begin();
+  Point* startPoint2 = rightI.begin();
+  return (*startPoint1).coordinates[0] < (*startPoint2).coordinates[0];
+}
+
+bool operator< (interval_one_dim leftI, interval_one_dim rightI){
+  //true, if leftI starts before rightI
+  long int startLeft, startRight;
+  if (leftI.p1 <= leftI.p2) {startLeft = leftI.p1;}
+  else {startLeft = leftI.p2;}
+  if (rightI.p1 <= rightI.p2) {startRight = rightI.p1;} 
+  else {startRight = rightI.p2;}
+  return startLeft < startRight;
+}
+
+interval_one_dim Interval::getOneDimension(int dim){
+    //assert (dim == 0 || dim == 1 || dim == 2 || dim == 3);
+    interval_one_dim returnV;
+    returnV.p1 = b.coordinates[dim];
+    returnV.p2 = e.coordinates[dim];
+    return returnV;
+
+}
+
+Interval* Interval::findOverlaps (Interval* i2){
+  //self is not choosen interval in call of method
+  vector<long int> csb(3); vector<long int> cse(3);
+  //return Interval; contains for each dimension (x,y and z) the overlap or zero if there isn't any overlap
+ 
+  for (unsigned int i = 0; i < 3; i++){
+    interval_one_dim i1_1dim = this->getOneDimension(i);
+    interval_one_dim i2_1dim = i2->getOneDimension(i);
+    long int start1, end1, start2, end2;
+    //start und endpunkte 
+    if(i1_1dim.p1 <= i1_1dim.p2){
+      start1 = i1_1dim.p1; end1 = i1_1dim.p2;
+    }
+    else{
+      start1 = i1_1dim.p2; end1 = i1_1dim.p1;
+    }
+    if(i2_1dim.p1 <= i2_1dim.p2){
+      start2 = i2_1dim.p1; end2 = i2_1dim.p2;
+    }
+    else{
+      start2 = i2_1dim.p2; end2 = i2_1dim.p1;
+    }
+
+    if ((end2 < start1) || (start2 > end1)){//no overlap
+      //cout<<"no OVERLAP\n";
+      csb[i] = 0; cse[i] = 0;
+    }
+    else{//overlap
+      if (start2 <= start1 && end1 <= end2){//i1 komplett umschlossen von i2
+	csb[i] = start1; cse[i] = end1;
+	//cout<<"OVERLAP (inclusion) in dimension "<<i<< " between Interval1 = ("<<start1<<", "<< end1 <<"), Interval2 = ("<<start2<<", "<< end2 <<"); overlap = ("<<start1<<", "<< end1 <<"); size = "<<end1-start1+1 <<" \n";
+      }
+      if (start1 <= start2 && end2 <= end1){//komplett umschlossen andersherum, rest zerfaellt in zwei teile!
+	csb[i] = start2; cse[i] = end2;
+	//cout<<"OVERLAP (inclusion) in dimension "<<i<< " between  Interval1 = ("<<start1<<", "<< end1 <<"), Interval2 = ("<<start2<<", "<< end2 <<"); overlap = ("<<start2<<", "<< end2 <<"); size = "<<end2-start2+1 <<"\n";
+      }
+      if (start2 >= start1 && start2 <= end1 && end2 > end1){//Fall 3a
+	csb[i] = start2; cse[i] = end1;
+	//cout<<"OVERLAP in dimension "<<i<< " between  Interval1 = ("<<start1<<", "<< end1 <<"), Interval2 = ("<<start2<<", "<< end2 <<"); overlap = ("<<start2<<", "<< end1 <<"); size = "<<end1-start2+1 <<"\n";
+	
+      }
+      if(start1 >= start2 && start1 <= end2 && end2 < end1){ //Fall 3b
+	csb[i] = start1; cse[i] = end2;
+	//cout<<"OVERLAP in dimension "<<i<< " between  Interval1 = ("<<start1<<", "<< end1 <<"), Interval2 = ("<<start2<<", "<< end2 <<"); overlap = ("<<start1<<", "<< end2 <<"); size = "<<end2-start1+1 <<"\n";
+	
+      }
+      else {}
+    }
+  }
+  Point b(csb); Point e(cse);
+  Interval* overlaps = new Interval(b,e);
+  return overlaps;
+}
+
+bool Interval::overlap(Interval* i2){
+  //returns true, if i1 and i2 overlap; else false
+  bool isOverlap = 0;
+	unsigned dims = ((i2->begin())->coordinates).size();
+  for (unsigned int i = 0; i < dims; i++){
+    interval_one_dim i1_1dim = this->getOneDimension(i);
+    interval_one_dim i2_1dim = i2->getOneDimension(i);
+    long int start1, end1, start2, end2;
+    //start und endpunkte 
+    if(i1_1dim.p1 <= i1_1dim.p2){
+      start1 = i1_1dim.p1; end1 = i1_1dim.p2;
+    }
+    else{
+      start1 = i1_1dim.p2; end1 = i1_1dim.p1;
+    }
+    if(i2_1dim.p1 <= i2_1dim.p2){
+      start2 = i2_1dim.p1; end2 = i2_1dim.p2;
+    }
+    else{
+      start2 = i2_1dim.p2; end2 = i2_1dim.p1;
+    }
+    //overlaps checken:
+    if ((end2 < start1) || (start2 > end1)){//no overlap
+    }
+    else{//overlap: sobald in einer dimension ein overlap gefunden wird, wird 1 zurueckgegeben:
+      isOverlap = 1; 
+	return isOverlap;
+      
+    }
+  }
+  return isOverlap;
+}
+
+bool overlap(Interval* i1, Interval * i2){
+  //returns true, if i1 and i2 overlap; else false
+  bool isOverlap = 0;
+  for (unsigned int i = 0; i < 3; i++){
+    interval_one_dim i1_1dim = i1->getOneDimension(i);
+    interval_one_dim i2_1dim = i2->getOneDimension(i);
+    long int start1, end1, start2, end2;
+    //start und endpunkte 
+    if(i1_1dim.p1 <= i1_1dim.p2){
+      start1 = i1_1dim.p1; end1 = i1_1dim.p2;
+    }
+    else{
+      start1 = i1_1dim.p2; end1 = i1_1dim.p1;
+    }
+    if(i2_1dim.p1 <= i2_1dim.p2){
+      start2 = i2_1dim.p1; end2 = i2_1dim.p2;
+    }
+    else{
+      start2 = i2_1dim.p2; end2 = i2_1dim.p1;
+    }
+    //overlaps checken:
+    if ((end2 < start1) || (start2 > end1)){//no overlap
+      //cout<<"no OVERLAP\n";
+    }
+    else{//overlap: sobald in einer dimension ein overlap gefunden wird, wird 1 zurueckgegeben:
+      isOverlap = 1; return isOverlap;
+      
+    }
+  }
+  return isOverlap;
+}
+
+
+

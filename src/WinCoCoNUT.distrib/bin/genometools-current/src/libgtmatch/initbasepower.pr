@@ -1,0 +1,16 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+unsigned int maxbasepower(unsigned int numofchars);
+
+Codetype *initbasepower(unsigned int numofchars,unsigned int prefixlength);
+
+Codetype *initfilltable(unsigned int numofchars,unsigned int prefixlength);
+
+Codetype **initmultimappower(unsigned int numofchars,unsigned int qvalue);
+
+void multimappowerfree(Codetype ***multimappower);
+
+#ifdef __cplusplus
+}
+#endif

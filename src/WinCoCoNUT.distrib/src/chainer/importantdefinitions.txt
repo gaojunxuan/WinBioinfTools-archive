@@ -1,0 +1,10 @@
+- In all files
+
+#define FOPEN fopen
+
+- In file ProcessFragmentFile.h
+
+#define MaxFragmentLine 4999
+
+MIN_VALUE -2000000000
+gap_threshold=2000000000

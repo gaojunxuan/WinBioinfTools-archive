@@ -1,0 +1,4 @@
+FRAGMENT= -p -d -v -l 14 
+CHAINING= -l -chainerformat -lw 7 -gc 100 -length 40 
+CHAINING= -neighbor -chainerformat -lw 1 -gc 50000 -length 500 
+SYNTENY= -overlap 1 0.3 

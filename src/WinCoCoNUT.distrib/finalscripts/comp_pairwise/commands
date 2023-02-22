@@ -1,0 +1,36 @@
+perl comp_multiple_genome.pl -cf ../finalscripts/config -pr
+../finalscripts/parameters -fp multimat ../testdata/seq.1 ../testdata/seq.2
+../testdata/seq.3 ../testdata/seq.4
+
+perl process_fragments_kgenomes_multimat.pl ../testdata/fragment.mm 4 ../bin/chainer/chainer
+
+perl produce_alignment.pl ../bin/align/alichainer ../bin/align/clustalw
+../testdata/chlamediae_multimat/fragment.mm 1 parameters.auto
+../testdata/chlamediae_multimat/AE001363.fasta
+../testdata/chlamediae_multimat/AE001273.fasta
+
+
+perl produce_alignment.pl ../../bin/align/alichainer ../../bin/align/clustalw
+../../testdata/chlamediae_multimat/fragment.mm 1 parameters.auto
+../../testdata/chlamediae_multimat/AE001273.fasta
+../../testdata/chlamediae_multimat/AE001363.fasta
+../../testdata/chlamediae_multimat/AE002160.fasta
+
+../../testdata/chlamediae_multimat/fragment.mm.ppp.chn.align
+mibrahim@fritz:~/Myprojects/CoCoNUT/finalscripts/comp_finished> perl comp_multiple_genome.pl -cf config -pr parameters.auto -fp multimat -v ../../testdata/chlamediae_multimat/AE001273.fasta ../../testdata/chlamediae_multimat/AE001363.fasta ../../testdata/chlamediae_multimat/AE002160.fasta -plot -align
+
+
+perl comp_multiple_genome.pl -cf config  -fp multimat -v
+../../testdata/chlamediae_multimat/AE001273.fasta
+../../testdata/chlamediae_multimat/AE001363.fasta
+../../testdata/chlamediae_multimat/AE002160.fasta  -syntenic -forward -plot
+-align 
+
+perl comp_pairwise_draft.pl -cf config   -v
+../../testdata/draft_genomes/NC_003923.fna.draft.shuffled
+../../testdata/draft_genomes/NC_002745.fna.draft.shuffled  -pr
+parameters.draft -plot -align
+
+perl comp_pairwise_draft.pl -cf config   -v ../../testdata/draft_genomes/NC_003923.fna ../../testdata/draft_genomes/NC_002745.fna   -pr parameters.draft
+
+perl comp_pairwise_draft.pl -cf config   -v  ../../testdata/draft_genomes/NC_003923.fna.draft.shuffled ../../testdata/draft_genomes/NC_002745.fna.draft.shuffled   -plot -align

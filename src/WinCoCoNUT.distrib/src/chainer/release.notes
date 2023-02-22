@@ -1,0 +1,4 @@
+- 10.8.2006: adding fragment's id to chainformat chain file
+- 10.8.2006: appending the number of chains to .stc file
+- 10.8.2006: does not require description file in case of est or draft
+- 10.8.2006: always create a statistics file

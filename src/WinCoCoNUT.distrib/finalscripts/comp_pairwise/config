@@ -1,0 +1,10 @@
+# PATHS
+
+#fragment generation  tool
+FRAGMENT=../../bin/genometools-current/bin
+
+#chaining path
+CHAINING=../../bin/chainer
+
+#align path
+ALIGN=../../bin/align

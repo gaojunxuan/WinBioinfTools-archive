@@ -1,0 +1,28 @@
+#LD=/usr/local/bin/g++
+#GNULIB=/usr/local/lib
+#GNULIB64=/usr/local/lib/sparcv9
+# Linux
+#LD=g++ -O3 -Wall
+#GNULIB=/usr/lib
+#GNULIB64=/usr/bin/lib/sparcv9
+
+#LIBGNU=-L$(GNULIB) -R$(GNULIB)
+
+include ../Makedef
+
+OFILES2=reverse_comp.o
+CFILES2=reverse_comp.cpp
+EXEFILE2=reverse_comp
+
+$(EXEFILE2):	$(OFILES)
+	$(LD)  $(CFLAGS) $(LIBGNU) $(CFILES2) -o $(EXEFILE2)
+
+64bits:
+	$(LD) $(LIBGNU) $(COPT) $(CFILES2) -o $(EXEFILE2)	
+
+.PHONY:	clean_all clean
+clean_all:
+	rm -f $(OFILES2) $(EXEFILE2)
+clean:
+	rm -f $(OFILES2) $(EXEFILE2)
+

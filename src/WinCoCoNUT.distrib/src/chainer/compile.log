@@ -1,0 +1,161 @@
+g++   -L -R  -Wall -O3  -DMACHINE_64 Gcomp.cpp kdTree.cpp kdChainer.cpp ProcessFragmentFile.cpp ProcessOptions.cpp ContigSorting.cpp -o chainer	
+gcc match2chainer.c -o match2chainer
+
+
+Gcomp.cpp: In function `int main(long int, char**)':
+Gcomp.cpp:39: Warnung: unused variable `long int i'
+Gcomp.cpp:40: Warnung: unused variable `long int j'
+Gcomp.cpp:43: Warnung: unused variable `FILE*fptr'
+kdChainer.cpp: In constructor `kdChainer::kdChainer()':
+kdChainer.cpp:82: Warnung: left-hand operand of comma expression has no effect
+kdChainer.cpp: In constructor `kdChainer::kdChainer(long int*)':
+kdChainer.cpp:107: Warnung: left-hand operand of comma expression has no effect
+kdChainer.cpp: In member function `long int
+   kdChainer::kd_read_fragment_file(char*)':
+kdChainer.cpp:177: Warnung: int format, long int arg (arg 3)
+kdChainer.cpp: In member function `void
+   kdChainer::quicksortkdlistkeysOndim(long int, long int*, long int, long int)
+   ':
+kdChainer.cpp:490: Warnung: unused variable `char flag'
+kdChainer.cpp: In member function `int
+   kdChainer::KdtreebasedModgetchain(ProcessFragmentFile*, int, int)':
+kdChainer.cpp:623: Warnung: unused variable `char temp[1499]'
+kdChainer.cpp: In member function `int
+   kdChainer::GappedKdtreebasedModgetchain(ProcessFragmentFile*, int, int)':
+kdChainer.cpp:737: Warnung: unused variable `char temp[1499]'
+kdChainer.cpp: In member function `int
+   kdChainer::KdtreeSW(ProcessFragmentFile*, int, int, double)':
+kdChainer.cpp:854: Warnung: unused variable `char temp[1499]'
+kdChainer.cpp: In member function `void
+   kdChainer::storeMultiChain(ProcessFragmentFile*, int)':
+kdChainer.cpp:1351: Warnung: unused variable `FILE*fptr2'
+kdChainer.cpp:1356: Warnung: unused variable `char tempstr[1499]'
+kdChainer.cpp: In member function `int kdChainer::check_chain(Kdelem*, int,
+   double, double)':
+kdChainer.cpp:1558: Warnung: unused variable `Kdelem*elem'
+kdChainer.cpp:1559: Warnung: unused variable `long int gap_ti'
+kdChainer.cpp: In member function `void
+   kdChainer::storeChain(ProcessFragmentFile*, int)':
+kdChainer.cpp:1644: Warnung: unused variable `FILE*fptr2'
+kdChainer.cpp:1645: Warnung: unused variable `char tempstr[1499]'
+kdChainer.cpp: In member function `int
+   kdChainer::ContigESTChainer(ProcessFragmentFile*, int, int, double, char*,
+   int)':
+kdChainer.cpp:1793: Warnung: unused variable `char temp[1499]'
+kdChainer.cpp: In member function `int kdChainer::mod_Contig_SW(double, char*)
+   ':
+kdChainer.cpp:1950: Warnung: unused variable `int contigflag'
+kdChainer.cpp:1951: Warnung: unused variable `int current_contig_flag'
+kdChainer.cpp:1952: Warnung: unused variable `double maxscoreincontig'
+kdChainer.cpp:1953: Warnung: unused variable `double prevmaxscoreincontig'
+kdChainer.cpp:1954: Warnung: unused variable `long int gapElem_ti'
+kdChainer.cpp:1955: Warnung: unused variable `char firsttimeflag'
+kdChainer.cpp: In member function `int kdChainer::check_est(int, double,
+   double, ContigSorting*, double)':
+kdChainer.cpp:2212: Warnung: unused variable `Kdelem*elem'
+kdChainer.cpp:2213: Warnung: unused variable `long int gap_ti'
+kdChainer.cpp: In member function `int kdChainer::mod_EST_SW(double, char*)':
+kdChainer.cpp:2239: Warnung: unused variable `long int gap_ij'
+kdChainer.cpp:2240: Warnung: unused variable `long int gap_ti'
+kdChainer.cpp:2247: Warnung: unused variable `int contigflag'
+kdChainer.cpp:2248: Warnung: unused variable `int current_contig_flag'
+kdChainer.cpp:2249: Warnung: unused variable `double maxscoreincontig'
+kdChainer.cpp:2250: Warnung: unused variable `double prevmaxscoreincontig'
+kdChainer.cpp:2251: Warnung: unused variable `long int gapElem_ti'
+kdChainer.cpp:2252: Warnung: unused variable `char firsttimeflag'
+kdChainer.cpp: In member function `void
+   kdChainer::storeMultiEST(ProcessFragmentFile*, int)':
+kdChainer.cpp:2500: Warnung: unused variable `FILE*fptr2'
+kdChainer.cpp:2504: Warnung: unused variable `char tempstr[1499]'
+kdChainer.cpp: In member function `void
+   kdChainer::storeChainDB(ProcessFragmentFile*, int)':
+kdChainer.cpp:2722: Warnung: unused variable `FILE*fptr2'
+kdChainer.cpp:2723: Warnung: unused variable `char tempstr[1499]'
+kdChainer.cpp:2778: Warnung: unused variable `long int gti'
+kdChainer.cpp: In member function `void
+   kdChainer::storeMultiChainDB(ProcessFragmentFile*, int)':
+kdChainer.cpp:2855: Warnung: unused variable `FILE*fptr2'
+kdChainer.cpp:2859: Warnung: unused variable `char tempstr[1499]'
+kdChainer.cpp: In member function `void
+   kdChainer::storeMultiContigDB(ProcessFragmentFile*, int)':
+kdChainer.cpp:3076: Warnung: unused variable `FILE*fptr2'
+kdChainer.cpp:3080: Warnung: unused variable `char tempstr[1499]'
+kdChainer.cpp: In member function `void
+   kdChainer::storeMultiEstDB(ProcessFragmentFile*, int)':
+kdChainer.cpp:3327: Warnung: unused variable `FILE*fptr2'
+kdChainer.cpp:3329: Warnung: unused variable `long int j'
+kdChainer.cpp:3331: Warnung: unused variable `char tempstr[1499]'
+kdChainer.cpp:3338: Warnung: unused variable `double chscore'
+kdChainer.cpp: In member function `void kdChainer::silent_chain_traversal()':
+kdChainer.cpp:3533: Warnung: unused variable `Kdelem*elem'
+kdChainer.cpp:3534: Warnung: unused variable `long int i'
+kdChainer.cpp:3542: Warnung: unused variable `char temp[1499]'
+kdChainer.cpp:3543: Warnung: unused variable `char tempstr[1499]'
+kdChainer.cpp: In member function `void
+   kdChainer::silent_traverse_cluster(child*, double*)':
+kdChainer.cpp:3620: Warnung: unused variable `int i'
+kdChainer.cpp: In constructor `kdChainer::kdChainer()':
+kdChainer.cpp:82: Warnung: statement with no effect
+kdChainer.cpp:83: Warnung: statement with no effect
+kdChainer.cpp: In constructor `kdChainer::kdChainer()':
+kdChainer.cpp:82: Warnung: statement with no effect
+kdChainer.cpp:83: Warnung: statement with no effect
+kdChainer.cpp: In constructor `kdChainer::kdChainer(long int*)':
+kdChainer.cpp:107: Warnung: statement with no effect
+kdChainer.cpp:108: Warnung: statement with no effect
+kdChainer.cpp: In constructor `kdChainer::kdChainer(long int*)':
+kdChainer.cpp:107: Warnung: statement with no effect
+kdChainer.cpp:108: Warnung: statement with no effect
+kdChainer.cpp: In member function `void
+   kdChainer::storeMultiEST(ProcessFragmentFile*, int)':
+kdChainer.cpp:2499: Warnung: `FILE*clusterfptr' might be used uninitialized in
+   this function
+kdChainer.cpp: In member function `void
+   kdChainer::storeChainDB(ProcessFragmentFile*, int)':
+kdChainer.cpp:2720: Warnung: `FILE*fptr' might be used uninitialized in this
+   function
+kdChainer.cpp: In member function `void
+   kdChainer::storeMultiChainDB(ProcessFragmentFile*, int)':
+kdChainer.cpp:2853: Warnung: `FILE*fptr' might be used uninitialized in this
+   function
+kdChainer.cpp:2854: Warnung: `FILE*clusterfptr' might be used uninitialized in
+   this function
+kdChainer.cpp: In member function `void
+   kdChainer::storeMultiContigDB(ProcessFragmentFile*, int)':
+kdChainer.cpp:3074: Warnung: `FILE*fptr' might be used uninitialized in this
+   function
+kdChainer.cpp:3075: Warnung: `FILE*clusterfptr' might be used uninitialized in
+   this function
+kdChainer.cpp:3087: Warnung: `double chscore' might be used uninitialized in
+   this function
+kdChainer.cpp: In member function `void
+   kdChainer::storeMultiEstDB(ProcessFragmentFile*, int)':
+kdChainer.cpp:3326: Warnung: `FILE*clusterfptr' might be used uninitialized in
+   this function
+ProcessFragmentFile.cpp: In member function `int
+   ProcessFragmentFile::GetFragmentFileStatisticsFormat2(char*)':
+ProcessFragmentFile.cpp:118: Warnung: int format, long int arg (arg 3)
+ProcessFragmentFile.cpp:92: Warnung: unused variable `int flag'
+ProcessFragmentFile.cpp:94: Warnung: unused variable `long int
+   current_fragment_length'
+ContigSorting.cpp: In member function `long int
+   ContigSorting::kd_read_chain_file(char*, long int)':
+ContigSorting.cpp:95: Warnung: unused variable `long int i'
+ContigSorting.cpp:98: Warnung: unused variable `int flag'
+ContigSorting.cpp:100: Warnung: unused variable `long int number_of_matches'
+ContigSorting.cpp: In member function `int ContigSorting::read_contigs(char*,
+   int)':
+ContigSorting.cpp:278: Warnung: unused variable `long int markpos'
+ContigSorting.cpp: In member function `void
+   ContigSorting::quicksortkdlistkeysOndim(unsigned char, long int*, long int,
+   long int)':
+ContigSorting.cpp:445: Warnung: unused variable `char flag'
+ContigSorting.cpp: In member function `void
+   ContigSorting::specific_quicksortkdlistkeysOndim(unsigned char, long int*,
+   long int, long int)':
+ContigSorting.cpp:519: Warnung: unused variable `char flag'
+ContigSorting.cpp: In member function `int
+   ContigSorting::transform2absolute_sortedcontig()':
+ContigSorting.cpp:780: Warnung: unused variable `int kk'
+ContigSorting.cpp:715: Warnung: unused variable `long int startcontig'
+gcc match2chainer.c -o match2chainer

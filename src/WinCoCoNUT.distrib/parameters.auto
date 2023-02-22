@@ -1,0 +1,2 @@
+FRAGMENT=  -l 20 
+CHAINING= -l -chainerformat -lw 27 -gc 500 -length 40 
